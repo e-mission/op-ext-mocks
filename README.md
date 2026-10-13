@@ -20,64 +20,80 @@ The mock serves these endpoint groups:
 
 The mock UI at `GET /mock/ui` lets you force `lock` and `unlock` to succeed or fail per device.
 
-## Run In GitHub Codespaces
+## Run In A Dev Container
 
-From this mock repo root, install the minimal dependencies if they are not already available:
+This repo includes a devcontainer configuration for both GitHub Codespaces and VS Code. When the container starts, it automatically installs the Python dependencies and launches the mock API in the background.
 
-```bash
-pip install fastapi uvicorn
-```
+### GitHub Codespaces
 
-Start the mock server:
+> To launch a devcontainer in GitHub Codespaces, open your repository in GitHub, click the green "Code" button, select "Codespaces," then "Create codespace."
 
-```bash
-PYTHONPATH=. uvicorn bikeep_mock:app --host 0.0.0.0 --port 8000
-```
+After the codespace is created, wait for the container to finish setting up, then open the `Ports` panel and confirm port `24533` is forwarded.
 
-In GitHub Codespaces:
+### VS Code
 
-1. Open the `Ports` panel.
-2. Confirm port `8000` is forwarded.
-3. Open the forwarded URL in the browser.
-4. Visit `/mock/ui` to configure lock/unlock success or failure.
+> To launch a devcontainer in VS Code, open the repository folder in VS Code, then use the command palette and run "Dev Containers: Reopen in Container" or "Dev Containers: Rebuild and Reopen in Container."
+
+If the repo was opened before the devcontainer config was added or changed, rebuild the container once so the post-create and post-start hooks run.
+
+Once the container is running:
+
+1. Open the `Ports` panel in VS Code or Codespaces.
+2. Confirm port `24533` is forwarded.
+3. Visit `/mock/ui` to configure lock/unlock success or failure.
 
 Example:
 
 ```text
-https://<your-codespace-name>-8000.app.github.dev/mock/ui
+http://localhost:24533/mock/ui
+```
+
+Or, in GitHub Codespaces:
+
+```text
+https://<your-codespace-name>-24533.app.github.dev/mock/ui
 ```
 
 ## Point The Bikeep Client At The Mock
 
-`bikeep_service.py` currently uses module constants for the Bikeep base URLs. For a quick local test in Codespaces, set them before calling the service from Python:
+This repo matches the server-side change in e-mission/e-mission-server#1112: the Bikeep URLs can be configured via environment variables instead of hardcoded module constants.
 
-```python
-import emission.net.ext_service.bikeep.bikeep_service as bikeep
+If you are running the mock from the devcontainer, use the forwarded container URL or localhost depending on where the client runs:
 
-bikeep.BIKEEP_API_URL = "http://127.0.0.1:8000"
-bikeep.BIKEEP_AUTH_URL = "http://127.0.0.1:8000/oauth2/token"
+```bash
+export BIKEEP_API_URL="http://127.0.0.1:24533"
+export BIKEEP_AUTH_URL="http://127.0.0.1:24533/oauth2/token"
 ```
 
-If the caller runs in the same Codespaces container, `127.0.0.1:8000` is enough. If you need to hit the mock from outside the container, use the forwarded Codespaces URL instead.
+If the caller runs in the same container, `127.0.0.1:24533` is enough. If you need to hit the mock from outside the container, use the forwarded Codespaces or devcontainer URL instead.
+
+For example, in a Codespace you might use:
+
+```bash
+export BIKEEP_API_URL="https://<your-codespace-name>-24533.app.github.dev"
+export BIKEEP_AUTH_URL="https://<your-codespace-name>-24533.app.github.dev/oauth2/token"
+```
+
+This keeps the client configuration aligned with the server PR that allows the Bikeep endpoints to be passed in externally.
 
 ## Useful Endpoints
 
 Inspect current mock state:
 
 ```bash
-curl http://127.0.0.1:8000/mock/state
+curl http://127.0.0.1:24533/mock/state
 ```
 
 Reset devices and configured outcomes:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/mock/reset
+curl -X POST http://127.0.0.1:24533/mock/reset
 ```
 
 Force a lock failure for one device:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/mock/command-outcome \
+curl -X POST http://127.0.0.1:24533/mock/command-outcome \
   -H 'Content-Type: application/json' \
   -d '{"device_id":"mock-dock-1","command":"lock","outcome":"failure"}'
 ```
@@ -85,7 +101,7 @@ curl -X POST http://127.0.0.1:8000/mock/command-outcome \
 Clear all forced outcomes:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/mock/command-outcome/reset
+curl -X POST http://127.0.0.1:24533/mock/command-outcome/reset
 ```
 
 ## Notes
