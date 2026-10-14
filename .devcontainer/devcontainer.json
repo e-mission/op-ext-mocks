@@ -9,7 +9,7 @@
     }
   },
   "postCreateCommand": "python -m pip install --upgrade pip && python -m pip install fastapi uvicorn",
-  "postStartCommand": "bash -lc 'if ! pgrep -f \"uvicorn bikeep_mock:app\" >/dev/null; then PYTHONPATH=. nohup uvicorn bikeep_mock:app --host 0.0.0.0 --port 24533 >/tmp/bikeep_mock.log 2>&1 & fi'",
+  "postStartCommand": "bash -lc 'if ! pgrep -f \"uvicorn bikeep_mock:app\" >/dev/null; then PYTHONPATH=. nohup uvicorn bikeep_mock:app --host 0.0.0.0 --port 24533 --reload --reload-dir /workspaces/op-ext-mocks >/tmp/bikeep_mock.log 2>&1 & fi'",
   "customizations": {
     "vscode": {
       "extensions": [

@@ -42,6 +42,8 @@ Once the container is running:
 2. Confirm port `24533` is forwarded.
 3. Visit `/mock/ui` to configure lock/unlock success or failure.
 
+In the Codespaces `Ports` panel, set port `24533`'s **Port protocol** to `HTTP`. The public forwarded URL still uses HTTPS; the proxy terminates that TLS and forwards HTTP to Uvicorn. If the port protocol is set to `HTTPS`, the proxy instead sends TLS to Uvicorn, which would require configuring Uvicorn with a certificate and key.
+
 Example:
 
 ```text
@@ -58,6 +60,8 @@ https://<your-codespace-name>-24533.app.github.dev/mock/ui
 
 This repo matches the server-side change in e-mission/e-mission-server#1112: the Bikeep URLs can be configured via environment variables instead of hardcoded module constants.
 
+The devcontainer starts the mock automatically on container startup, and uvicorn runs with autoreload so file changes restart the server inside the container.
+
 If you are running the mock from the devcontainer, use the forwarded container URL or localhost depending on where the client runs:
 
 ```bash
@@ -65,7 +69,11 @@ export BIKEEP_API_URL="http://127.0.0.1:24533"
 export BIKEEP_AUTH_URL="http://127.0.0.1:24533/oauth2/token"
 ```
 
-If the caller runs in the same container, `127.0.0.1:24533` is enough. If you need to hit the mock from outside the container, use the forwarded Codespaces or devcontainer URL instead.
+If the caller runs in the same container, `127.0.0.1:24533` is enough.
+
+If the caller runs outside the container, use the forwarded URL shown in the Ports panel. That public URL is HTTPS, and the certificate is handled by Codespaces or the VS Code forwarding layer.
+
+If the server is already running and you change the devcontainer config, rebuild the container once so the startup hook is picked up again.
 
 For example, in a Codespace you might use:
 
